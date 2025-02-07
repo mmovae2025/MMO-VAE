@@ -7,8 +7,7 @@ This repository contains the implementation of MMO-VAE, a Variational AutoEncode
 parer link : https://openreview.net/forum?id=ceSzLYloIL&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DKDD.org%2F2025%2FResearch_Track_February%2FAuthors%23your-submissions)
 
 ### Important Notes
-- **This repository does not include code for evaluating the properties of SMILES.**  
-- The properties were predicted using the DTA model provided by [ReBADD-SE](https://github.com/mathcom/ReBADD-SE).
+- **This repository does not include code for evaluating the properties of SMILES. If you want more information, please refer to the paper.**  
 - The code includes the implementation of only **Model A** 
 - To use the code, preprocess your SMILES dataset using the `selfies` library: [Selfies GitHub Repository](https://github.com/aspuru-guzik-group/selfies).
 - 
