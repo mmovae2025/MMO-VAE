@@ -4,7 +4,7 @@
 
 This repository contains the implementation of MMO-VAE, a Variational AutoEncoder (VAE) with mask-guided multi-objective optimization for de novo drug design.
 
-parer link : https://openreview.net/forum?id=ceSzLYloIL&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DKDD.org%2F2025%2FResearch_Track_February%2FAuthors%23your-submissions)
+parer link : --
 
 ### Important Notes
 - **This repository does not include code for evaluating the properties of SMILES. If you want more information, please refer to the paper.**  
