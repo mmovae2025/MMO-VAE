@@ -47,7 +47,7 @@ parer link : https://openreview.net/forum?id=ceSzLYloIL&referrer=%5BAuthor%20Con
 
 ## Model Download
 models can be downloaded from the following link:  
-[Google Drive - Models](https://drive.google.com/drive/folders/1cCFS8sXCCnQaiXkg14ixpyUAULcaGPXE?usp=sharing)
+[Google Drive - Models](https://drive.google.com/drive/folders/1riWfM56yNzfDVLCQWD6pNSIN10JksBhR?usp=sharing)
 
 After downloading, place the models in the `/model/` folder as follows:
 
