@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
 from torch.nn.utils.rnn import pack_padded_sequence
-#import time 
 import re 
 
 
@@ -25,8 +23,7 @@ class Encoder(nn.Module):
         self.mu = nn.Linear(2 * hidden_dim, latent_dim) # 2 * 512 -> 48
         self.std = nn.Sequential(
             nn.Linear(2 * hidden_dim, latent_dim), # 2 * 512 -> 48
-            nn.Softplus()  # 표준편차는 0이상의 값을 가짐
-        )
+            nn.Softplus()  
 
     def forward(self, embed_x, lengths, label = None, prop=None):
         packed = pack_padded_sequence(embed_x, lengths, batch_first=True)
@@ -62,7 +59,6 @@ class Predictor(nn.Module):
     
 
     def parse_value_range(self, value_range):
-        # Value Range는 (0, 1) 또는 [0, 1), (0, 1] 갇히 범위와 닫힌구간을 바탕으로 데려온다. 
         match = re.match(r'(\(|\[)(.*),(.*)(\)|\])', value_range)
         if not match:
             raise ValueError("Invalid range format. Use (min,max), (min,max], [min,max), or [min,max]")
@@ -85,12 +81,12 @@ class Predictor(nn.Module):
         if self.value_range is not None:
             y = torch.sigmoid(y)
             if not self.closed_left:
-                min_val = self.min_val + 1e-6  # 왼쪽 열린 구간 조정
+                min_val = self.min_val + 1e-6  
             else:
                 min_val = self.min_val
                 
             if not self.closed_right:
-                max_val = self.max_val - 1e-6  # 오른쪽 열린 구간 조정
+                max_val = self.max_val - 1e-6  
             else:
                 max_val = self.max_val
                 
@@ -112,7 +108,7 @@ class Decoder(nn.Module):
         self.num_layers = num_layers
         self.hidden_dim = hidden_dim
         
-        self.bridge = nn.Linear(latent_dim, (num_layers * hidden_dim), bias=True) # 수정됨
+        self.bridge = nn.Linear(latent_dim, (num_layers * hidden_dim), bias=True)
         self.decoder_gru = nn.GRU(input_size=embed_dim,
                                   hidden_size=hidden_dim,
                                   num_layers=num_layers,
@@ -132,7 +128,7 @@ class Decoder(nn.Module):
         #Setting Start Token 
         if sos_token is not None:
             prev_embed = sos_token
-        else: #근데 이러면 Start Token이 없어서 Generation 할 때 좀 찜찜함. 
+        else: 
             prev_embed = trg_embed[:, 0].unsqueeze(1) # trg_embed : [batch_size, max_len, embed_dim] -> [batch_size, 1, embed_dim]
 
         for i in range(max_len): 
@@ -145,7 +141,7 @@ class Decoder(nn.Module):
                 if decode_sampling:
                     token_logits = generator(pre_output.squeeze(1))
                     token_probs = torch.softmax(token_logits, dim=-1)
-                    token = torch.multinomial(token_probs, 1).squeeze(1) # RNN 내에 확률분포에서 샘플링
+                    token = torch.multinomial(token_probs, 1).squeeze(1) 
                     embed_token = embeder(token)
                     prev_embed = embed_token.unsqueeze(1)
                 else:
@@ -167,7 +163,7 @@ class Decoder(nn.Module):
         #hidden -> [num_layer, batch, hidden_dim]
         output, hidden = self.decoder_gru(prev_embed, hidden)
 
-        # input-feeding approach (https://arxiv.org/abs/1508.04025)
+        # input-feeding approach
         pre_output = torch.cat([prev_embed, output], dim = 2) # [batch, 1, embed_dim + hidden_dim]
         pre_output = self.pre_output(pre_output)  # embed_din + hidden_dim -> hidden_dim
         return pre_output, hidden
@@ -211,7 +207,7 @@ class Decoder(nn.Module):
                 break
             token_logits = generator(pre_output.squeeze(1))
             token_probs = torch.softmax(token_logits, dim=-1)
-            token = torch.multinomial(token_probs, 1).squeeze(1) # RNN 내에 확률분포에서 샘플링
+            token = torch.multinomial(token_probs, 1).squeeze(1) # RNN
             embed_token = embeder(token)
             prev_embed = embed_token.unsqueeze(1)
             
@@ -231,7 +227,7 @@ class VAE(nn.Module):
                  de_num_layers,
                  prop_num = 1,
                  run_predictor = True,
-                 value_range = None # value_range form : [ '[0,1)' , '[0,10]' ]  원소는 string이여야함 
+                 value_range = None # value_range form : [ '[0,1)' , '[0,10]' ]  
                  ):
         super(VAE, self).__init__()
         # Number of properties
@@ -244,7 +240,7 @@ class VAE(nn.Module):
             nn.Linear(hidden_dim, voca_dim, bias=False),
             nn.LogSoftmax(dim=-1)
         )
-        self.encoder = Encoder(embed_dim, hidden_dim, latent_dim, num_layers=en_num_layers) # 수정 완료 
+        self.encoder = Encoder(embed_dim, hidden_dim, latent_dim, num_layers=en_num_layers) 
         self.decoder = Decoder(embed_dim, hidden_dim, latent_dim, num_layers=de_num_layers)
 
         if value_range is None:
@@ -266,7 +262,7 @@ class VAE(nn.Module):
                 param.requires_grad = False
         #To Control Property 
         
-        self.latent_mask = torch.nn.Parameter(torch.randn(prop_num, latent_dim, 2)) #마지막 차원은 0, 1에 대한 차원
+        self.latent_mask = torch.nn.Parameter(torch.randn(prop_num, latent_dim, 2)) 
         self.tau = 0.5
     
     def reparameterize(self, mean, logvar):
@@ -275,9 +271,9 @@ class VAE(nn.Module):
         return mean + std * eps
 
     def mask_process(self):
-        #여기에 log를 안씌운 이유는 경사 소멸을 없애기 위함 
+        
         odds = torch.sigmoid(self.latent_mask) / (1 - torch.sigmoid(self.latent_mask))
-        mask = F.gumbel_softmax(odds, self.tau, hard=True)[:, :, 1] #1이면 True 0이면 False
+        mask = F.gumbel_softmax(odds, self.tau, hard=True)[:, :, 1] 
         return mask
 
 
@@ -294,13 +290,6 @@ class VAE(nn.Module):
         
         y_list = []
         if self.run_predictor:
-            # latent_reshape = latent.view(latent.shape[0], 1, -1) #[batch, 1, latent_dim]
-            # latent_reshape = latent_reshape.repeat(1, self.prop_num, 1) # [batch, prop_num, latent_dim]
-            # latent_mask = self.mask_process().unsqueeze(0) # [1, prop_num, latent_dim]
-            # masking_latent = latent_reshape * latent_mask # Z * J^T   # [batch, prop_num, latent_dim]
-            # for idx, predictor in enumerate(self.predictors):
-            #     y = predictor(masking_latent[:, idx, :]) #[batch_size, 1] 
-            #     y_list.append(y)
             latent_mask = self.mask_process().unsqueeze(0) # [1, prop_num, latent_dim]
             y_list = [predictor(latent * latent_mask[:, idx, :]) for idx, predictor in enumerate(self.predictors)]
 

@@ -1,9 +1,4 @@
 
-'''
-이 Data utils은 전부 Selfies용으로 만들어져있습니다. - 강원대, BDS Lab 최건우 올림
-'''
-
-
 import numpy as np
 import pandas as pd
 import torch 
@@ -12,8 +7,6 @@ from rdkit.Chem.rdmolfiles import MolFromSmiles, MolToSmiles
 from rdkit import Chem
 from rdkit.Chem import QED
 import importlib
-#from scoring_module.chemutils import * 
-#from scoring_module.bindutils import *
 from tqdm.notebook import tqdm
 from tqdm.auto import trange
 import sys
@@ -24,23 +17,19 @@ def tensor2smiles_sampling(x, word2idx, idx2word):
     out_smiles = []
     test_selfies = []
     for src in x:
-        # 확률 분포에서 샘플링
         probs = torch.softmax(src, dim=-1)
         sampled_indices = torch.multinomial(probs, 1).reshape(-1).cpu().detach().numpy()
 
-        # <eos> 토큰 이후는 제거
         first_eos = np.where(sampled_indices == word2idx['<eos>'])[0]
         if len(first_eos) > 0:
             sampled_indices = sampled_indices[:first_eos[0]]
 
         test_selfies.append([idx2word[i] for i in sampled_indices])
-    
-        # 특수 토큰 제거
+
         sampled_indices = np.delete(sampled_indices, np.where(sampled_indices == word2idx['<pad>']))
         sampled_indices = np.delete(sampled_indices, np.where(sampled_indices == word2idx['<sos>']))
         sampled_indices = np.delete(sampled_indices, np.where(sampled_indices == word2idx['<unk>']))
 
-        # 인덱스를 단어로 변환
         out_sentence = [idx2word[i] for i in sampled_indices]
         out_sf = ''.join(out_sentence)
         out_smi = sf.decoder(out_sf)
@@ -49,9 +38,6 @@ def tensor2smiles_sampling(x, word2idx, idx2word):
     return out_smiles, test_selfies
 
 def tensor2smiles_v2(x, word2idx, idx2word):
-    '''
-    #240709
-    '''
     out_smiles = []
     out_selfies = []
     
@@ -70,7 +56,6 @@ def tensor2smiles_v2(x, word2idx, idx2word):
         out_smiles.append(out_smi)
         out_selfies.append(out_sf)
     return out_smiles, out_selfies
-
 
 
 def print_token2sf(target, out_x,
@@ -92,12 +77,10 @@ def print_token2sf(target, out_x,
             _, sentence = torch.max(out_x[i], dim=-1)
             sentence_np = sentence.reshape(-1).cpu().detach().numpy()
 
-            #<eos>가 있으면 그 앞부분만 추출함 
             first_eos = np.where(sentence_np == word2idx['<eos>'])[0] 
             if len(first_eos) > 0:
                 sentence_np = sentence_np[:first_eos[0]]
 
-        # 원래 입력값에 대하여 복원
         src = in_x[i].cpu().numpy()
         src = np.delete(src, np.where((src == word2idx['<pad>'])))
         src = np.delete(src, np.where((src == word2idx['<eos>'])))
@@ -106,7 +89,7 @@ def print_token2sf(target, out_x,
         in_smi = sf.decoder(in_sf)
         in_n_smi = normalize_SMILES(in_smi)
         
-        # 모델 출력에 대하여 복원
+        
         sentence_np = np.delete(sentence_np, np.where((sentence_np == word2idx['<pad>'])))
         sentence_np = np.delete(sentence_np, np.where((sentence_np == word2idx['<sos>'])))
         sentence_np = np.delete(sentence_np, np.where((sentence_np == word2idx['<unk>'])))
@@ -115,7 +98,7 @@ def print_token2sf(target, out_x,
         try:
             out_smi = sf.decoder(out_sf)
         except Exception as e:
-            print("=== == == = = eror = = == == ===")
+            print("=== == == = = error = = == == ===")
             print(out_sf)
             print(e)
         out_n_smi = normalize_SMILES(out_smi)
