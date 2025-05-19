@@ -23,7 +23,7 @@ class Encoder(nn.Module):
         self.mu = nn.Linear(2 * hidden_dim, latent_dim) # 2 * 512 -> 48
         self.std = nn.Sequential(
             nn.Linear(2 * hidden_dim, latent_dim), # 2 * 512 -> 48
-            nn.Softplus()  
+            nn.Softplus())
 
     def forward(self, embed_x, lengths, label = None, prop=None):
         packed = pack_padded_sequence(embed_x, lengths, batch_first=True)
@@ -320,7 +320,7 @@ class VAE(nn.Module):
             latent_reshape = latent_reshape.repeat(1, self.prop_num, 1) # [batch, prop_num, latent_dim]
             if latent_mask is None:
                 #latent_mask = self.mask_inference().unsqueeze( # [1, prop_num, latent_dim]
-                latent_mask = self.mask_inference() # [prop_num, latent_dim]
+                latent_mask, _ = self.mask_inference() # [prop_num, latent_dim]
             masking_latent = latent_reshape * latent_mask # Z * J^T   # [batch, prop_num, latent_dim]
             for idx, predictor in enumerate(self.predictors):
                 y = predictor(masking_latent[:, idx, :]) #[batch_size, 1] 
@@ -346,7 +346,7 @@ class VAE(nn.Module):
                                             embeder=self.embed,
                                             sos_token=sos_token.unsqueeze(1))
         x = self.generator(reconstruct)
-        latent_mask = self.mask_inference().unsqueeze(0) # [1, prop_num, latent_dim]
+        latent_mask = self.mask_inference()[0].unsqueeze(0) # [1, prop_num, latent_dim]
         if return_y and self.run_predictor :
             y_list = [predictor(z * latent_mask[:, idx, :]) for idx, predictor in enumerate(self.predictors)]
             return x, y_list
