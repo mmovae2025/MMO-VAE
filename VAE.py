@@ -3,7 +3,7 @@ from torch import nn, optim
 from torch.nn import functional as F
 from torch.nn.utils.rnn import pack_padded_sequence
 import re 
-
+ 
 
 class Encoder(nn.Module):
     def __init__(self,
@@ -352,6 +352,7 @@ class VAE(nn.Module):
             return x, y_list
         else:
             return x
+
 
 
 
