@@ -10,7 +10,6 @@ parer link : --
 - **This repository does not include code for evaluating the properties of SMILES. If you want more information, please refer to the paper.**  
 - The code includes the implementation of only **Model A** 
 - To use the code, preprocess your SMILES dataset using the `selfies` library: [Selfies GitHub Repository](https://github.com/aspuru-guzik-group/selfies).
-- 
 
 ## File Descriptions
 
@@ -21,7 +20,7 @@ parer link : --
 - `chembl_selfies_tokens.txt` : SELFIES tokens extracted from the chEMBL dataset.
 - `zinc15_sample.csv` : Preprocessed ZINC15 dataset sample.
 - `zinc15_selfies_tokens.txt` : SELFIES tokens extracted from the ZINC15 dataset.
-
+- 
 ### Main Notebooks
 0. **`preprocessing.ipynb`**
    - Preprocesses SMILES into SELFIES.
